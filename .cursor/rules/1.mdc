@@ -1,0 +1,35 @@
+---
+description: Quy tắc nghiêm ngặt bắt buộc Cursor AI hoàn thành chính xác yêu cầu, không thay đổi cấu trúc hệ thống, fix lỗi phải điều tra sâu và test triệt để.
+globs:
+alwaysApply: true
+---
+# Nguyên tắc tuân thủ bắt buộc:
+
+- **Bắt buộc hoàn thành chính xác mọi yêu cầu được giao.**
+- **Tuyệt đối không xóa file, module hoặc chức năng nếu không có chỉ dẫn rõ ràng.**
+- **Không được đơn giản hóa, hạ cấp, bỏ qua các phần của hệ thống gây ảnh hưởng đến chất lượng hoặc hiệu năng.**
+- **Khi phát hiện lỗi, phải:**
+  - **Điều tra nguyên nhân gốc rễ gây ra lỗi, không được sửa tạm hoặc làm chắp vá.**
+  - **Chạy đầy đủ các test hiện tại của hệ thống và bổ sung test nếu thiếu.**
+  - **Theo dõi log và các chỉ số vận hành để kiểm tra lỗi phát sinh hoặc ảnh hưởng phụ.**
+- **Không được chấp nhận phiên bản chỉ chạy được mà chưa qua test hoàn chỉnh và xác nhận chất lượng.**
+- **Mọi thay đổi phải được ghi lại rõ ràng trong mô tả và phải tuân thủ chuẩn code, bảo mật và hiệu năng dự án.**
+- **Báo cáo đầy đủ kết quả test, đánh giá ảnh hưởng trước khi hoàn thành công việc.**
+
+---
+
+# Test & Kiểm thử
+
+1. Biên dịch và chạy toàn bộ test hiện có.
+2. Nếu chưa có test, tạo test tự động để kiểm thử lỗi được fix.
+3. Kiểm tra log lỗi, warnings và các vấn đề bảo mật.
+4. Đảm bảo không có cảnh báo hay lỗi mới phát sinh.
+5. Xác nhận chất lượng qua kết quả test PASS trước khi merge.
+
+---
+
+# Quản lý thay đổi
+
+- Không được xóa hoặc ẩn các phần chức năng nếu chưa có lý do rõ ràng.
+- Không làm giảm hiệu quả, bảo mật hoặc khả năng mở rộng.
+- Ghi rõ mô tả từng thay đổi, mục đích và kiểm thử kèm theo.
