@@ -3,7 +3,11 @@ package com.pandora.core.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import com.pandora.core.ui.designkit.theme.DarkPandoraColors
+import com.pandora.core.ui.designkit.theme.LightPandoraColors
+import com.pandora.core.ui.designkit.theme.LocalPandoraColors
 
 private val DarkColorScheme = darkColorScheme(
     primary = PandoraBlue,
@@ -15,10 +19,17 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun PandoraOSTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = DarkColorScheme,
-        // Typography và Shapes sẽ được định nghĩa sau
-        content = content
-    )
+fun PandoraOSTheme(
+    isDarkTheme: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val pandoraColors = if (isDarkTheme) DarkPandoraColors else LightPandoraColors
+    
+    CompositionLocalProvider(LocalPandoraColors provides pandoraColors) {
+        MaterialTheme(
+            colorScheme = DarkColorScheme,
+            // Typography và Shapes sẽ được định nghĩa sau
+            content = content
+        )
+    }
 }

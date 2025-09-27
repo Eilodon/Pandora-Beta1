@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandora.core.ui.theme.PandoraOSTheme
+import com.pandora.core.ui.designkit.demo.DesignKitDemo
 import com.pandora.feature.overlay.FloatingAssistantService
 import com.pandora.core.cac.db.CACDao
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,30 +36,9 @@ class MainActivity : ComponentActivity() {
         startService(Intent(this, FlowEngineService::class.java))
         
         setContent {
-            PandoraOSTheme {
+            PandoraOSTheme(isDarkTheme = true) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Text(
-                                text = "PandoraOS v0.1.0-chimera",
-                                style = MaterialTheme.typography.headlineMedium
-                            )
-                            
-                            Text(
-                                text = "CAC Database: ${if (::cacDao.isInitialized) "Connected ✅" else "Disconnected ❌"}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            
-                            Button(onClick = {
-                                checkOverlayPermissionAndStartService()
-                            }) {
-                                Text("Kích hoạt Pandora Orb")
-                            }
-                        }
-                    }
+                    DesignKitDemo()
                 }
             }
         }
