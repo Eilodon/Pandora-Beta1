@@ -53,6 +53,10 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-compiler:2.48")
     
+    // Compression libraries (optional)
+    implementation("com.github.luben:zstd-jni:1.5.6-9")
+    implementation("org.brotli:dec:0.1.2")
+    
     // Core modules
     implementation(project(":core-cac"))
     implementation(project(":core-data"))
@@ -67,6 +71,11 @@ dependencies {
     // MockK for mocking
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("io.mockk:mockk-android:1.13.8")
+    
+    // Mockito for mocking
+    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.8.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
     
     // Coroutines testing
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")

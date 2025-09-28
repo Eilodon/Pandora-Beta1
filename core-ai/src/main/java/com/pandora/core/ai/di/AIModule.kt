@@ -20,6 +20,14 @@ import com.pandora.core.ai.automation.WorkflowExecutor
 import com.pandora.core.ai.automation.TriggerManager
 import com.pandora.core.ai.automation.ConditionEvaluator
 import com.pandora.core.ai.automation.SmartIntegrationManager
+import com.pandora.core.ai.compression.CompressionCodec
+import com.pandora.core.ai.storage.ModelStorageManager
+import com.pandora.core.ai.storage.IModelStorageManager
+import com.pandora.core.ai.hybrid.SimpleHybridModelManager
+import com.pandora.core.ai.hybrid.ProductionHybridModelManager
+import com.pandora.core.ai.hybrid.HybridModelManagerConfig
+import com.pandora.core.ai.network.NetworkHealthMonitor
+import com.pandora.core.ai.delta.DeltaUpdateManager
 import com.pandora.core.cac.db.CACDao
 import dagger.Module
 import dagger.Provides
@@ -204,4 +212,56 @@ object AIModule {
             conditionEvaluator = conditionEvaluator
         )
     }
+    
+    // Hybrid Model Manager Dependencies - Temporarily commented out for Phase 2
+    @Provides
+    @Singleton
+    fun provideModelStorageManager(@ApplicationContext context: Context): IModelStorageManager {
+        return ModelStorageManager(context)
+    }
+
+    // @Provides
+    // @Singleton
+    // fun provideNetworkHealthMonitor(@ApplicationContext context: Context): NetworkHealthMonitor {
+    //     return NetworkHealthMonitor(context)
+    // }
+
+    // @Provides
+    // @Singleton
+    // fun provideDeltaUpdateManager(@ApplicationContext context: Context): DeltaUpdateManager {
+    //     return DeltaUpdateManager(context)
+    // }
+
+    @Provides
+    @Singleton
+    fun provideSimpleHybridModelManager(
+        @ApplicationContext context: Context,
+        storageManager: IModelStorageManager
+    ): SimpleHybridModelManager {
+        return SimpleHybridModelManager(
+            context = context,
+            storageManager = storageManager
+        )
+    }
+
+    // TODO: Uncomment when HybridModelManagerConfig is compiled
+    // @Provides
+    // @Singleton
+    // fun provideHybridModelManagerConfig(): HybridModelManagerConfig {
+    //     return HybridModelManagerConfig.PRODUCTION
+    // }
+
+    // @Provides
+    // @Singleton
+    // fun provideProductionHybridModelManager(
+    //     @ApplicationContext context: Context,
+    //     storageManager: ModelStorageManager,
+    //     config: HybridModelManagerConfig
+    // ): ProductionHybridModelManager {
+    //     return ProductionHybridModelManager(
+    //         context = context,
+    //         storageManager = storageManager,
+    //         config = config
+    //     )
+    // }
 }
