@@ -2,8 +2,8 @@ package com.pandora.core.ai.ml
 
 import android.content.Context
 import com.pandora.core.ai.TestDataFactory
-import com.pandora.core.ai.TestInfrastructure
 import com.pandora.core.ai.TestUtils
+import com.pandora.core.ai.TestBase
 import io.mockk.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 /**
  * Unit tests for AdvancedModelManager
  */
-class AdvancedModelManagerTest : TestInfrastructure() {
+class AdvancedModelManagerTest : TestBase() {
     
     private lateinit var context: Context
     private lateinit var advancedModelManager: AdvancedModelManager
@@ -120,7 +120,7 @@ class AdvancedModelManagerTest : TestInfrastructure() {
         
         every { context.assets } returns mockk(relaxed = true)
         
-        testCases.forEach { (text, expectedIntent) ->
+        testCases.forEach { (text, _) ->
             // When
             val result = advancedModelManager.analyzeTextAdvanced(
                 text, 

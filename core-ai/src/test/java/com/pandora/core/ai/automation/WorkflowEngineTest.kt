@@ -2,8 +2,8 @@ package com.pandora.core.ai.automation
 
 import android.content.Context
 import com.pandora.core.ai.TestDataFactory
-import com.pandora.core.ai.TestInfrastructure
 import com.pandora.core.ai.TestUtils
+import com.pandora.core.ai.TestBase
 import io.mockk.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 /**
  * Unit tests for WorkflowEngine
  */
-class WorkflowEngineTest : TestInfrastructure() {
+class WorkflowEngineTest : TestBase() {
     
     private lateinit var context: Context
     private lateinit var workflowEngine: WorkflowEngine

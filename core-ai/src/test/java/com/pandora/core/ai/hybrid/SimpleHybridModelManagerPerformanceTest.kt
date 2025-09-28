@@ -68,7 +68,7 @@ class SimpleHybridModelManagerPerformanceTest {
         val startTime = System.currentTimeMillis()
         
         // Test concurrent operations without calling loadModel to avoid Log issues
-        val jobs = (1..5).map { i ->
+        val jobs = (1..5).map { _ ->
             async {
                 // Simple test that doesn't call loadModel
                 val status = hybridModelManager.managerStatus.value
