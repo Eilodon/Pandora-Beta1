@@ -16,6 +16,9 @@ import com.pandora.core.ui.theme.PandoraOSTheme
 import com.pandora.core.ui.designkit.demo.DesignKitDemo
 import com.pandora.feature.overlay.FloatingAssistantService
 import com.pandora.core.cac.db.CACDao
+import com.pandora.app.performance.MemoryOptimizer
+import com.pandora.app.performance.CPUOptimizer
+import com.pandora.app.performance.PerformanceMonitor
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -24,6 +27,15 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var cacDao: CACDao
+    
+    @Inject
+    lateinit var memoryOptimizer: MemoryOptimizer
+    
+    @Inject
+    lateinit var cpuOptimizer: CPUOptimizer
+    
+    @Inject
+    lateinit var performanceMonitor: PerformanceMonitor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +43,9 @@ class MainActivity : ComponentActivity() {
         // Test Hilt injection - "Kinh mạch" đã hoạt động!
         // CAC Database đã được inject thành công!
         println("PandoraOS v0.1.0-chimera - CAC Database: ${if (::cacDao.isInitialized) "Connected ✅" else "Disconnected ❌"}")
+        
+        // Initialize performance monitoring
+        initializePerformanceMonitoring()
         
         // Khởi động FlowEngineService để lắng nghe các trigger hệ thống
         startService(Intent(this, FlowEngineService::class.java))
@@ -42,6 +57,26 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun initializePerformanceMonitoring() {
+        // Start performance monitoring
+        performanceMonitor.startMonitoring()
+        
+        // Record app startup time
+        performanceMonitor.recordScreenLoadTime("MainActivity", System.currentTimeMillis())
+        
+        // Initialize memory optimization
+        val memoryUsage = memoryOptimizer.getMemoryUsage()
+        performanceMonitor.recordMemoryUsage(memoryUsage.usedMemory)
+        
+        // Initialize CPU optimization
+        val cpuUsage = cpuOptimizer.getCPUUsage()
+        performanceMonitor.recordCPUUsage(cpuUsage.usagePercentage)
+        
+        println("PandoraOS v0.1.0-chimera - Performance Monitoring: Initialized ✅")
+        println("Memory Usage: ${memoryUsage.usedMemory / 1024 / 1024}MB / ${memoryUsage.maxMemory / 1024 / 1024}MB")
+        println("CPU Usage: ${cpuUsage.usagePercentage}%")
     }
 
     private fun checkOverlayPermissionAndStartService() {
