@@ -1,10 +1,8 @@
 package com.pandora.core.ai.hybrid
 
 /**
- * Data class for manager status
+ * Enum for manager status
  */
-data class ManagerStatus(
-    val isInitialized: Boolean = false,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
+enum class ManagerStatus {
+    IDLE, LOADING, ERROR
+}
