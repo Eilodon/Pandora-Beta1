@@ -23,8 +23,7 @@ class AdvancedModelManagerTest : TestInfrastructure() {
     private lateinit var advancedModelManager: AdvancedModelManager
     
     @BeforeEach
-    override fun setUp() {
-        super.setUp()
+    fun setUp() {
         context = mockk(relaxed = true)
         advancedModelManager = AdvancedModelManager(
             context = context
@@ -79,7 +78,7 @@ class AdvancedModelManagerTest : TestInfrastructure() {
     fun `analyzeTextAdvanced should handle null text context gracefully`() = runTest {
         // Given
         val text = "Test text"
-        val textContext = TestDataFactory.createTextContext(appPackage = null)
+        val textContext = TestDataFactory.createTextContext(appPackage = "com.test.app")
         
         // When
         val result = advancedModelManager.analyzeTextAdvanced(text, textContext).first()

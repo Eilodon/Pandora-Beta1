@@ -25,8 +25,7 @@ class PersonalizationEngineTest : TestInfrastructure() {
     private lateinit var personalizationEngine: PersonalizationEngine
     
     @BeforeEach
-    override fun setUp() {
-        super.setUp()
+    fun setUp() {
         context = mockk(relaxed = true)
         cacDao = mockk(relaxed = true)
         personalizationEngine = PersonalizationEngine(context, cacDao)

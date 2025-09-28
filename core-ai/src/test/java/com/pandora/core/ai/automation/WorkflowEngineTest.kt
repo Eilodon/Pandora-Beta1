@@ -27,8 +27,7 @@ class WorkflowEngineTest : TestInfrastructure() {
     private lateinit var smartIntegrationManager: SmartIntegrationManager
     
     @BeforeEach
-    override fun setUp() {
-        super.setUp()
+    fun setUp() {
         context = mockk(relaxed = true)
         
         // Mock dependencies
