@@ -8,6 +8,8 @@ import com.pandora.feature.keyboard.logic.ActionExecutor
 import com.pandora.feature.keyboard.logic.InferenceEngine
 import com.pandora.feature.keyboard.logic.InferredAction
 import com.pandora.feature.keyboard.logic.checkAllMiniFlows
+import com.pandora.core.ai.EnhancedInferenceEngine
+import com.pandora.core.ai.EnhancedInferenceResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +26,7 @@ class KeyboardViewModel @Inject constructor(
     @ApplicationContext private val context: Context, // Inject context
     private val memoryDao: MemoryDao,
     private val inferenceEngine: InferenceEngine, // Inject InferenceEngine
+    private val enhancedInferenceEngine: EnhancedInferenceEngine, // Inject Enhanced Inference Engine
     private val actionExecutor: ActionExecutor // Inject ActionExecutor
 ) : ViewModel() {
 
@@ -38,9 +41,20 @@ class KeyboardViewModel @Inject constructor(
     private val _inferredAction = MutableStateFlow<InferredAction?>(null)
     val inferredAction: StateFlow<InferredAction?> = _inferredAction
 
+    private val _enhancedInferenceResult = MutableStateFlow<EnhancedInferenceResult?>(null)
+    val enhancedInferenceResult: StateFlow<EnhancedInferenceResult?> = _enhancedInferenceResult
+
     fun onTextChanged(currentText: String) {
         // Mỗi khi văn bản thay đổi, hãy thử suy luận hành động
         _inferredAction.value = inferenceEngine.inferActionFromText(currentText)
+        
+        // Sử dụng Enhanced Inference Engine cho phân tích nâng cao
+        viewModelScope.launch {
+            enhancedInferenceEngine.analyzeTextEnhanced(currentText)
+                .collect { result ->
+                    _enhancedInferenceResult.value = result
+                }
+        }
         
         // Kích hoạt tất cả mini-flows
         checkAllMiniFlows(context, currentText)
@@ -75,5 +89,35 @@ class KeyboardViewModel @Inject constructor(
         }
 
         _inferredAction.value = null // Xóa gợi ý sau khi thực thi
+    }
+
+    /**
+     * Initialize Enhanced Inference Engine
+     */
+    fun initializeEnhancedAI() {
+        viewModelScope.launch {
+            try {
+                enhancedInferenceEngine.initialize()
+                android.util.Log.d("KeyboardViewModel", "Enhanced AI initialized successfully")
+            } catch (e: Exception) {
+                android.util.Log.e("KeyboardViewModel", "Error initializing Enhanced AI", e)
+            }
+        }
+    }
+
+    /**
+     * Get user insights from Enhanced AI
+     */
+    fun getUserInsights() {
+        viewModelScope.launch {
+            try {
+                enhancedInferenceEngine.getUserInsights()
+                    .collect { insights ->
+                        android.util.Log.d("KeyboardViewModel", "User insights: $insights")
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("KeyboardViewModel", "Error getting user insights", e)
+            }
+        }
     }
 }

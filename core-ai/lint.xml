@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Quality Assurance Rules for Core AI Module -->
+    
+    <!-- Performance Rules -->
+    <issue id="Performance" severity="warning" />
+    <issue id="MemoryLeak" severity="error" />
+    <issue id="InefficientLayout" severity="warning" />
+    <issue id="UnusedResources" severity="warning" />
+    
+    <!-- Security Rules -->
+    <issue id="HardcodedCredentials" severity="error" />
+    <issue id="InsecureRandom" severity="error" />
+    <issue id="ExportedService" severity="warning" />
+    <issue id="ExportedReceiver" severity="warning" />
+    
+    <!-- Code Quality Rules -->
+    <issue id="UnusedCode" severity="warning" />
+    <issue id="UnusedImports" severity="warning" />
+    <issue id="UnusedParameters" severity="warning" />
+    <issue id="UnusedVariables" severity="warning" />
+    
+    <!-- AI Specific Rules -->
+    <issue id="ModelLoading" severity="warning" />
+    <issue id="InferencePerformance" severity="warning" />
+    <issue id="ContextHandling" severity="warning" />
+    <issue id="MemoryManagement" severity="warning" />
+    
+    <!-- Disable specific rules that are not applicable -->
+    <issue id="MissingTranslation" severity="ignore" />
+    <issue id="ExtraTranslation" severity="ignore" />
+    <issue id="TypographyDashes" severity="ignore" />
+    <issue id="TypographyQuotes" severity="ignore" />
+</lint>

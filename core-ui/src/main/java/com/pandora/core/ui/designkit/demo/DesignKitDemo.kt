@@ -16,6 +16,11 @@ import com.pandora.core.ui.designkit.components.*
 import com.pandora.core.ui.designkit.theme.LocalPandoraColors
 import com.pandora.core.ui.designkit.theme.SecurityMode
 import com.pandora.core.ui.designkit.tokens.PandoraTokens
+import com.pandora.core.ui.designkit.animations.*
+import com.pandora.core.ui.designkit.haptics.*
+import com.pandora.core.ui.designkit.gestures.*
+import com.pandora.core.ui.designkit.responsive.*
+import com.pandora.core.ui.designkit.accessibility.*
 
 /**
  * Design Kit Demo
@@ -71,6 +76,138 @@ fun DesignKitDemo() {
                         style = TextStyle(fontFamily = FontFamily.Monospace)
                     )
                 }
+            }
+        }
+        
+        item {
+            Text(
+                text = "UI/UX Enhancements",
+                style = MaterialTheme.typography.headlineSmall,
+                color = colors.onSurface
+            )
+        }
+        
+        // Animation Components
+        item {
+            Text(
+                text = "Animations & Transitions",
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurface
+            )
+        }
+        
+        item {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(PandoraTokens.Spacing.sm)
+            ) {
+                AnimatedButton(
+                    onClick = { /* ButtonHaptics.onPress() */ }
+                ) {
+                    Text("Animated Button")
+                }
+                
+                AnimatedCard(
+                    onClick = { /* ButtonHaptics.onSuccess() */ }
+                ) {
+                    Text("Animated Card")
+                }
+            }
+        }
+        
+        item {
+            AnimatedLoadingSpinner()
+        }
+        
+        item {
+            AnimatedTypingIndicator(isTyping = true)
+        }
+        
+        // Haptic Feedback
+        item {
+            Text(
+                text = "Haptic Feedback",
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurface
+            )
+        }
+        
+        item {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(PandoraTokens.Spacing.sm)
+            ) {
+                Button(
+                    onClick = { /* KeyboardHaptics.onKeyPress() */ }
+                ) {
+                    Text("Key Press")
+                }
+                
+                Button(
+                    onClick = { /* AIHaptics.onThinking() */ }
+                ) {
+                    Text("AI Thinking")
+                }
+                
+                Button(
+                    onClick = { /* ButtonHaptics.onSuccess() */ }
+                ) {
+                    Text("Success")
+                }
+            }
+        }
+        
+        // Gesture Support
+        item {
+            Text(
+                text = "Gesture Support",
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurface
+            )
+        }
+        
+        item {
+            AnimatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .combinedGestures(
+                        GestureManager.GestureCallbacks(
+                            onSwipe = { direction ->
+                                /* ButtonHaptics.onPress() */
+                            },
+                            onTap = { /* ButtonHaptics.onPress() */ },
+                            onLongPress = { /* ButtonHaptics.onSuccess() */ }
+                        )
+                    )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Swipe, Tap, or Long Press me!")
+                }
+            }
+        }
+        
+        // Responsive Design
+        item {
+            Text(
+                text = "Responsive Design",
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurface
+            )
+        }
+        
+        item {
+            val screenSize = getScreenSize()
+            val isMobile = isMobile()
+            val isTablet = isTablet()
+            val isDesktop = isDesktop()
+            
+            Column {
+                Text("Screen Size: $screenSize")
+                Text("Mobile: $isMobile")
+                Text("Tablet: $isTablet")
+                Text("Desktop: $isDesktop")
             }
         }
         

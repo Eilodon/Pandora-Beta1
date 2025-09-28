@@ -60,10 +60,14 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-cac"))
     implementation(project(":core-data"))
+    implementation(project(":core-ai"))
     
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
+    
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
