@@ -198,7 +198,13 @@ class NFCManager(
      * Create NDEF message from data
      */
     private fun createNdefMessage(data: String): NdefMessage {
-        val record = NdefRecord.createMime("application/vnd.pandoraos.data", data.toByteArray())
+        // FIXED: Encrypt payload using AES-GCM; store as iv||ciphertext (simple framing)
+        val (iv, ciphertext) = CryptoUtils.encryptAesGcm(data.toByteArray())
+        val payload = ByteArray(iv.size + ciphertext.size).apply {
+            System.arraycopy(iv, 0, this, 0, iv.size)
+            System.arraycopy(ciphertext, 0, this, iv.size, ciphertext.size)
+        }
+        val record = NdefRecord.createMime("application/vnd.pandoraos.data", payload)
         return NdefMessage(arrayOf(record))
     }
     
@@ -216,7 +222,18 @@ class NFCManager(
                 NdefRecord.TNF_MIME_MEDIA -> {
                     val mimeType = String(record.type)
                     if (mimeType == "application/vnd.pandoraos.data") {
-                        data.append(String(record.payload))
+                        // FIXED: Decrypt AES-GCM payload assuming iv||ciphertext
+                        val payload = record.payload
+                        if (payload.size > 12) {
+                            val iv = payload.copyOfRange(0, 12)
+                            val ciphertext = payload.copyOfRange(12, payload.size)
+                            try {
+                                val plain = CryptoUtils.decryptAesGcm(iv, ciphertext)
+                                data.append(String(plain))
+                            } catch (e: Exception) {
+                                Log.e("NFCManager", "Failed to decrypt NFC payload", e)
+                            }
+                        }
                     }
                 }
                 NdefRecord.TNF_WELL_KNOWN -> {
@@ -233,18 +250,32 @@ class NFCManager(
      * Encrypt data before writing to NFC tag
      */
     fun encryptData(data: String): String {
-        // Simple encryption for demo purposes
-        // In production, use proper encryption like AES
-        return data.reversed()
+        // FIXED: Backward-compatible helper to produce base64 of iv||ciphertext
+        return try {
+            val (iv, ciphertext) = CryptoUtils.encryptAesGcm(data.toByteArray())
+            android.util.Base64.encodeToString(iv + ciphertext, android.util.Base64.NO_WRAP)
+        } catch (e: Exception) {
+            Log.e("NFCManager", "encryptData failed", e)
+            ""
+        }
     }
     
     /**
      * Decrypt data after reading from NFC tag
      */
     fun decryptData(encryptedData: String): String {
-        // Simple decryption for demo purposes
-        // In production, use proper decryption
-        return encryptedData.reversed()
+        // FIXED: Decrypt base64 iv||ciphertext helper
+        return try {
+            val raw = android.util.Base64.decode(encryptedData, android.util.Base64.NO_WRAP)
+            if (raw.size <= 12) return ""
+            val iv = raw.copyOfRange(0, 12)
+            val ciphertext = raw.copyOfRange(12, raw.size)
+            val plain = CryptoUtils.decryptAesGcm(iv, ciphertext)
+            String(plain)
+        } catch (e: Exception) {
+            Log.e("NFCManager", "decryptData failed", e)
+            ""
+        }
     }
     
     /**
