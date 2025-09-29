@@ -19,3 +19,22 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# FIXED: Hilt/Dagger keeps (minimum)
+-keep class dagger.** { *; }
+-keep class javax.inject.** { *; }
+-keep class dagger.hilt.** { *; }
+-keep class com.google.dagger.** { *; }
+
+# FIXED: TensorFlow Lite / org.tensorflow
+-keep class org.tensorflow.** { *; }
+-keep class org.tensorflow.lite.** { *; }
+
+# FIXED: JNI loaders (keep native methods)
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# FIXED: Example keep for codecs/models if reflective usage occurs
+-keep class com.pandora.core.ai.compression.** { *; }
+-keep class com.pandora.core.ai.ml.** { *; }

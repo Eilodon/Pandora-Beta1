@@ -5,10 +5,11 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- FIXED: data extraction rules - exclude sensitive data -->
+        <exclude domain="file" path="logs/" />
+        <exclude domain="database" path="nfc_ble_payloads.db" />
+        <exclude domain="sharedpref" path="ai_prefs.xml" />
+        <exclude domain="sharedpref" path="auth_tokens.xml" />
     </cloud-backup>
     <!--
     <device-transfer>

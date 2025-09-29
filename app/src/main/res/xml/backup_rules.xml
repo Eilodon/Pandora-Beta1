@@ -5,8 +5,9 @@
    Note: This file is ignored for devices older than API 23 even if they have auto backup available.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- FIXED: exclude sensitive data -->
+    <exclude domain="file" path="logs/" />
+    <exclude domain="database" path="nfc_ble_payloads.db" />
+    <exclude domain="sharedpref" path="ai_prefs.xml" />
+    <exclude domain="sharedpref" path="auth_tokens.xml" />
 </full-backup-content>

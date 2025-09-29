@@ -8,6 +8,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import androidx.core.app.NotificationCompat
 import android.media.AudioManager
 import android.nfc.NfcAdapter
 import android.os.IBinder
@@ -59,6 +63,15 @@ class FlowEngineService : Service() {
     override fun onCreate() {
         super.onCreate()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        // FIXED: foreground service to keep long-running listeners alive
+        createNotificationChannel()
+        val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Flow Engine active")
+            .setContentText("Listening for BLE/NFC events")
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            .setOngoing(true)
+            .build()
+        startForeground(NOTI_ID, notification)
         
         // Đăng ký lắng nghe sự kiện kết nối Bluetooth
         val filter = IntentFilter().apply {
@@ -73,14 +86,15 @@ class FlowEngineService : Service() {
         // Khởi tạo NFC monitoring
         initializeNFC()
         
-        Log.d("FlowEngine", "Enhanced FlowEngineService started with BLE and NFC support.")
+        // FIXED: use Timber
+        timber.log.Timber.d("Enhanced FlowEngineService started with BLE and NFC support.")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(bluetoothReceiver)
         serviceScope.cancel()
-        Log.d("FlowEngine", "FlowEngineService destroyed.")
+        timber.log.Timber.d("FlowEngineService destroyed.")
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -89,18 +103,18 @@ class FlowEngineService : Service() {
         serviceScope.launch {
             bleManager.isScanning.collect { isScanning ->
                 if (isScanning) {
-                    Log.d("FlowEngine", "BLE scanning started")
+                    timber.log.Timber.d("BLE scanning started")
                 } else {
-                    Log.d("FlowEngine", "BLE scanning stopped")
+                    timber.log.Timber.d("BLE scanning stopped")
                 }
             }
         }
         
         serviceScope.launch {
             bleManager.connectedDevices.collect { devices ->
-                Log.d("FlowEngine", "Connected BLE devices: ${devices.size}")
+                timber.log.Timber.d("Connected BLE devices: %s", devices.size)
                 devices.forEach { device ->
-                    Log.d("FlowEngine", "Connected: ${device.name} (${device.address})")
+                    timber.log.Timber.d("Connected: %s (%s)", device.name, device.address)
                 }
             }
         }
@@ -137,18 +151,19 @@ class FlowEngineService : Service() {
         val launchIntent = packageManager.getLaunchIntentForPackage("com.spotify.music")
         launchIntent?.let { 
             startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            Log.d("FlowEngine", "Spotify launched due to Bluetooth connection")
+            timber.log.Timber.d("Spotify launched due to Bluetooth connection")
         }
     }
 
     private fun handleBluetoothDisconnection() {
         // Logic xử lý khi ngắt kết nối Bluetooth
-        Log.d("FlowEngine", "Bluetooth disconnected - stopping audio flows")
+        timber.log.Timber.d("Bluetooth disconnected - stopping audio flows")
     }
 
     private fun handleNFCDataRead(data: String) {
         // Logic xử lý dữ liệu đọc từ NFC
-        Log.d("FlowEngine", "Processing NFC data: $data")
+        // Avoid logging plaintext NFC data in release
+        if (BuildConfig.DEBUG) timber.log.Timber.d("Processing NFC data: %s", data)
         
         // Có thể thêm logic để xử lý các lệnh từ NFC tag
         when {
@@ -186,6 +201,23 @@ class FlowEngineService : Service() {
             totalPermissions = permissionStats.totalPermissions,
             estimatedBatteryUsage = bleEnergyUsage.estimatedBatteryUsage
         )
+    }
+
+    // FIXED: create notification channel for foreground service
+    private fun createNotificationChannel() {
+        val manager = getSystemService(NotificationManager::class.java)
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Flow Engine",
+            NotificationManager.IMPORTANCE_LOW
+        )
+        manager.createNotificationChannel(channel)
+    }
+
+    companion object {
+        // FIXED: constants for foreground service
+        const val CHANNEL_ID = "flow_engine"
+        const val NOTI_ID = 100
     }
 }
 

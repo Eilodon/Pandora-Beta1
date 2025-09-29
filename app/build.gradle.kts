@@ -14,9 +14,13 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "0.1.0-chimera"
+        // FIXED: versionName bump to match CHANGELOG.md
+        versionName = "0.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // FIXED: BuildConfig flags for guarded Firebase initialization
+        buildConfigField("boolean", "ENABLE_FIREBASE", "false")
+        buildConfigField("boolean", "ENABLE_PERF", "false")
     }
 
     buildTypes {
@@ -27,6 +31,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // FIXED: Enable Firebase/Perf in release (can be toggled per env)
+            buildConfigField("boolean", "ENABLE_FIREBASE", "true")
+            buildConfigField("boolean", "ENABLE_PERF", "true")
+        }
+        debug {
+            // FIXED: Enable Firebase in debug but disable performance collection by default
+            buildConfigField("boolean", "ENABLE_FIREBASE", "true")
+            buildConfigField("boolean", "ENABLE_PERF", "false")
         }
     }
     compileOptions {
@@ -92,6 +104,8 @@ dependencies {
     // Performance monitoring
     implementation("com.google.firebase:firebase-perf:20.5.1")
     implementation("com.google.firebase:firebase-analytics:21.5.0")
+    // FIXED: Timber logging
+    implementation("com.jakewharton.timber:timber:5.0.1")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

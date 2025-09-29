@@ -2,6 +2,7 @@ package com.pandora.app.performance
 
 import android.content.Context
 import android.util.Log
+import timber.log.Timber
 import com.google.firebase.perf.FirebasePerformance
 import com.google.firebase.perf.metrics.Trace
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,7 +22,10 @@ import javax.inject.Singleton
 class PerformanceMonitor(
     @ApplicationContext context: Context
 ) {
-    private val firebasePerformance = FirebasePerformance.getInstance()
+    // FIXED: Guard Firebase by BuildConfig flag to avoid crashes if not configured
+    private val firebasePerformance: FirebasePerformance? = try {
+        if (com.pandora.app.BuildConfig.ENABLE_FIREBASE) FirebasePerformance.getInstance() else null
+    } catch (e: Exception) { null }
     private val _performanceData = MutableStateFlow<PerformanceData>(PerformanceData())
     val performanceData: StateFlow<PerformanceData> = _performanceData.asStateFlow()
     
@@ -42,7 +46,7 @@ class PerformanceMonitor(
                 delay(5000) // Update every 5 seconds
             }
         }
-        Log.d("PerformanceMonitor", "Performance monitoring started")
+        Timber.d("Performance monitoring started")
     }
     
     /**
@@ -50,13 +54,14 @@ class PerformanceMonitor(
      */
     fun startTrace(traceName: String): Trace? {
         return try {
-            val trace = firebasePerformance.newTrace(traceName)
+            val perf = firebasePerformance ?: return null // FIXED: skip if Firebase disabled
+            val trace = perf.newTrace(traceName)
             trace.start()
             _activeTraces[traceName] = trace
-            Log.d("PerformanceMonitor", "Started trace: $traceName")
+            Timber.d("Started trace: %s", traceName)
             trace
         } catch (e: Exception) {
-            Log.e("PerformanceMonitor", "Failed to start trace: $traceName", e)
+            Timber.e(e, "Failed to start trace: %s", traceName)
             null
         }
     }
@@ -69,9 +74,9 @@ class PerformanceMonitor(
             try {
                 trace.stop()
                 _activeTraces.remove(traceName)
-                Log.d("PerformanceMonitor", "Stopped trace: $traceName")
+                Timber.d("Stopped trace: %s", traceName)
             } catch (e: Exception) {
-                Log.e("PerformanceMonitor", "Failed to stop trace: $traceName", e)
+                Timber.e(e, "Failed to stop trace: %s", traceName)
             }
         }
     }
@@ -83,9 +88,9 @@ class PerformanceMonitor(
         _activeTraces[traceName]?.let { trace ->
             try {
                 trace.putMetric(metricName, value)
-                Log.d("PerformanceMonitor", "Added metric $metricName: $value to trace $traceName")
+                Timber.d("Added metric %s: %s to trace %s", metricName, value, traceName)
             } catch (e: Exception) {
-                Log.e("PerformanceMonitor", "Failed to add metric: $metricName", e)
+                Timber.e(e, "Failed to add metric: %s", metricName)
             }
         }
     }
@@ -97,9 +102,9 @@ class PerformanceMonitor(
         _activeTraces[traceName]?.let { trace ->
             try {
                 trace.putAttribute(attributeName, value)
-                Log.d("PerformanceMonitor", "Added attribute $attributeName: $value to trace $traceName")
+                Timber.d("Added attribute %s: %s to trace %s", attributeName, value, traceName)
             } catch (e: Exception) {
-                Log.e("PerformanceMonitor", "Failed to add attribute: $attributeName", e)
+                Timber.e(e, "Failed to add attribute: %s", attributeName)
             }
         }
     }
@@ -116,7 +121,7 @@ class PerformanceMonitor(
         )
         
         _performanceMetrics[metric.name] = metric
-        Log.d("PerformanceMonitor", "Recorded user interaction: $interactionType - ${duration}ms")
+        Timber.d("Recorded user interaction: %s - %sms", interactionType, duration)
     }
     
     /**
@@ -131,7 +136,7 @@ class PerformanceMonitor(
         )
         
         _performanceMetrics[metric.name] = metric
-        Log.d("PerformanceMonitor", "Recorded screen load time: $screenName - ${loadTime}ms")
+        Timber.d("Recorded screen load time: %s - %sms", screenName, loadTime)
     }
     
     /**
@@ -147,7 +152,7 @@ class PerformanceMonitor(
         )
         
         _performanceMetrics[metric.name] = metric
-        Log.d("PerformanceMonitor", "Recorded API call: $apiName - ${responseTime}ms (success: $success)")
+        Timber.d("Recorded API call: %s - %sms (success: %s)", apiName, responseTime, success)
     }
     
     /**
@@ -282,7 +287,7 @@ class PerformanceMonitor(
     fun clearPerformanceData() {
         _performanceMetrics.clear()
         _activeTraces.clear()
-        Log.d("PerformanceMonitor", "Performance data cleared")
+        Timber.d("Performance data cleared")
     }
     
     /**
@@ -294,11 +299,11 @@ class PerformanceMonitor(
             try {
                 trace.stop()
             } catch (e: Exception) {
-                Log.e("PerformanceMonitor", "Failed to stop trace", e)
+                Timber.e(e, "Failed to stop trace")
             }
         }
         _activeTraces.clear()
-        Log.d("PerformanceMonitor", "Performance monitoring stopped")
+        Timber.d("Performance monitoring stopped")
     }
 }
 

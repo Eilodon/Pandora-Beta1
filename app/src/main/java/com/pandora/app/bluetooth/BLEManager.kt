@@ -4,13 +4,19 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanSettings
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import androidx.core.app.ActivityCompat
+import com.pandora.app.permissions.PermissionUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +45,14 @@ class BLEManager(
     private val _connectedDevices = MutableStateFlow<List<BLEDevice>>(emptyList())
     val connectedDevices: StateFlow<List<BLEDevice>> = _connectedDevices.asStateFlow()
     
+    // FIXED: Provide optional error callback instead of crashing
+    var onScanError: ((Throwable) -> Unit)? = null
+
+    // FIXED: Add handler for duty-cycle scan management
+    private val handler: Handler = Handler(Looper.getMainLooper())
+    private var scanStopRunnable: Runnable? = null
+    private var scanRestartRunnable: Runnable? = null
+
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val device = BLEDevice(
@@ -103,8 +117,16 @@ class BLEManager(
      * Start scanning for BLE devices with energy optimization
      */
     fun startScanning() {
-        if (!isBLESupported() || !isBluetoothEnabled() || !hasLocationPermission()) {
-            android.util.Log.w("BLEManager", "Cannot start scanning - missing requirements")
+        // FIXED: Pre-scan permission checks for Android 12+ (BLUETOOTH_SCAN/CONNECT) and legacy (<31) FINE_LOCATION
+        if (!isBLESupported() || !isBluetoothEnabled()) {
+            android.util.Log.w("BLEManager", "Cannot start scanning - BLE not supported or Bluetooth disabled")
+            onScanError?.invoke(IllegalStateException("BLE unsupported or Bluetooth disabled"))
+            return
+        }
+
+        if (!PermissionUtils.hasBlePermissions(context)) {
+            android.util.Log.w("BLEManager", "Cannot start scanning - missing BLE runtime permissions")
+            onScanError?.invoke(IllegalStateException("Missing BLE permissions"))
             return
         }
         
@@ -114,11 +136,46 @@ class BLEManager(
         }
         
         try {
-            bluetoothLeScanner?.startScan(scanCallback)
+            val scanner = bluetoothLeScanner
+            if (scanner == null) {
+                onScanError?.invoke(IllegalStateException("BluetoothLeScanner unavailable"))
+                return
+            }
+
+            // FIXED: Set start time for energy metrics
+            scanStartTime = SystemClock.elapsedRealtime()
+
+            // FIXED: Use low-power scan settings and optional filters (empty to scan all)
+            val settings = ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                .setReportDelay(0L)
+                .build()
+            val filters: List<ScanFilter> = emptyList()
+
+            scanner.startScan(filters, settings, scanCallback)
             _isScanning.value = true
             android.util.Log.d("BLEManager", "Started BLE scanning")
+
+            // FIXED: Duty-cycle scanning: scan 10s, rest 50s, then restart
+            scanStopRunnable?.let { handler.removeCallbacks(it) }
+            scanRestartRunnable?.let { handler.removeCallbacks(it) }
+
+            scanStopRunnable = Runnable {
+                stopScanning()
+                scanRestartRunnable = Runnable {
+                    // Re-check permissions each cycle to avoid crashes
+                    if (PermissionUtils.hasBlePermissions(context)) {
+                        startScanning()
+                    } else {
+                        onScanError?.invoke(IllegalStateException("Missing BLE permissions"))
+                    }
+                }
+                handler.postDelayed(scanRestartRunnable!!, 50_000L)
+            }
+            handler.postDelayed(scanStopRunnable!!, 10_000L)
         } catch (e: SecurityException) {
             android.util.Log.e("BLEManager", "Security exception while starting scan", e)
+            onScanError?.invoke(e)
         }
     }
     
@@ -134,8 +191,14 @@ class BLEManager(
             bluetoothLeScanner?.stopScan(scanCallback)
             _isScanning.value = false
             android.util.Log.d("BLEManager", "Stopped BLE scanning")
+            // FIXED: Clear duty-cycle callbacks to avoid leaks
+            scanStopRunnable?.let { handler.removeCallbacks(it) }
+            scanRestartRunnable?.let { handler.removeCallbacks(it) }
+            scanStopRunnable = null
+            scanRestartRunnable = null
         } catch (e: SecurityException) {
             android.util.Log.e("BLEManager", "Security exception while stopping scan", e)
+            onScanError?.invoke(e)
         }
     }
     
@@ -175,8 +238,10 @@ class BLEManager(
      * Get energy usage statistics
      */
     fun getEnergyUsage(): BLEEnergyUsage {
-        val scanTime = if (_isScanning.value) {
-            System.currentTimeMillis() - scanStartTime
+        val scanTime = if (scanStartTime > 0L) {
+            // FIXED: Use elapsedRealtime to compute active scan time window
+            val now = SystemClock.elapsedRealtime()
+            (now - scanStartTime).coerceAtLeast(0L)
         } else 0L
         
         return BLEEnergyUsage(
@@ -187,7 +252,7 @@ class BLEManager(
         )
     }
     
-    private var scanStartTime = 0L
+    private var scanStartTime = 0L // FIXED: updated when starting scan
     
     private fun calculateBatteryUsage(scanTimeMs: Long): Float {
         // Rough estimation: BLE scanning uses ~1-2% battery per hour

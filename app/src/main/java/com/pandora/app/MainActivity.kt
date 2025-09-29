@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
@@ -25,7 +28,8 @@ import com.pandora.feature.gamification.GamificationManager
 import com.pandora.feature.gamification.GamificationDashboard
 import com.pandora.feature.b2b.B2BManager
 import com.pandora.feature.b2b.B2BDashboard
-import kotlinx.coroutines.GlobalScope
+import com.pandora.app.permissions.PermissionUtils
+import com.pandora.app.permissions.PermissionActivity
 import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -59,7 +63,8 @@ class MainActivity : ComponentActivity() {
         
         // Test Hilt injection - "Kinh mạch" đã hoạt động!
         // CAC Database đã được inject thành công!
-        println("PandoraOS v0.1.0-chimera - CAC Database: ${if (::cacDao.isInitialized) "Connected ✅" else "Disconnected ❌"}")
+        // FIXED: use Timber for logging
+        timber.log.Timber.d("PandoraOS v0.1.0-chimera - CAC Database: %s", if (::cacDao.isInitialized) "Connected ✅" else "Disconnected ❌")
         
         // Initialize performance monitoring
         initializePerformanceMonitoring()
@@ -71,7 +76,12 @@ class MainActivity : ComponentActivity() {
         initializeB2BSystem()
 
         // Khởi động FlowEngineService để lắng nghe các trigger hệ thống
-        startService(Intent(this, FlowEngineService::class.java))
+        // FIXED: permission gate - launch intro screen if missing BLE permissions
+        if (!PermissionUtils.hasBlePermissions(this)) {
+            startActivity(Intent(this, PermissionActivity::class.java))
+        } else {
+            startService(Intent(this, FlowEngineService::class.java))
+        }
         
         setContent {
             PandoraOSTheme(isDarkTheme = true) {
@@ -106,31 +116,40 @@ class MainActivity : ComponentActivity() {
         val cpuUsage = cpuOptimizer.getCPUUsage()
         performanceMonitor.recordCPUUsage(cpuUsage.usagePercentage)
         
-        println("PandoraOS v0.1.0-chimera - Performance Monitoring: Initialized ✅")
-        println("Memory Usage: ${memoryUsage.usedMemory / 1024 / 1024}MB / ${memoryUsage.maxMemory / 1024 / 1024}MB")
-        println("CPU Usage: ${cpuUsage.usagePercentage}%")
+        // FIXED: use Timber
+        timber.log.Timber.d("PandoraOS v0.1.0-chimera - Performance Monitoring: Initialized ✅")
+        timber.log.Timber.d("Memory Usage: %sMB / %sMB", memoryUsage.usedMemory / 1024 / 1024, memoryUsage.maxMemory / 1024 / 1024)
+        timber.log.Timber.d("CPU Usage: %s%%", cpuUsage.usagePercentage)
     }
 
     private fun initializeGamificationSystem() {
-        // Initialize gamification system in a coroutine
-        kotlinx.coroutines.GlobalScope.launch {
+        // FIXED: lifecycle-aware coroutines (replace GlobalScope with lifecycleScope)
+        lifecycleScope.launch {
             try {
                 gamificationManager.initialize()
-                println("Gamification System initialized successfully ✅")
+                timber.log.Timber.d("Gamification System initialized successfully ✅")
             } catch (e: Exception) {
-                println("Failed to initialize Gamification System: ${e.message} ❌")
+                timber.log.Timber.w(e, "Failed to initialize Gamification System")
+            }
+        }
+
+        // Example for lifecycle-bound collectors if needed in future
+        // FIXED: lifecycle-aware collectors using repeatOnLifecycle
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Collect flows here when needed
             }
         }
     }
 
     private fun initializeB2BSystem() {
-        // Initialize B2B system in a coroutine
-        kotlinx.coroutines.GlobalScope.launch {
+        // FIXED: lifecycle-aware coroutines (replace GlobalScope with lifecycleScope)
+        lifecycleScope.launch {
             try {
                 b2bManager.initialize()
-                println("B2B System initialized successfully ✅")
+                timber.log.Timber.d("B2B System initialized successfully ✅")
             } catch (e: Exception) {
-                println("Failed to initialize B2B System: ${e.message} ❌")
+                timber.log.Timber.w(e, "Failed to initialize B2B System")
             }
         }
     }

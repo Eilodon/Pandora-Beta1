@@ -39,11 +39,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- FIXED: Permission gate activity -->
+        <activity
+            android:name=".permissions.PermissionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PandoraOS"/>
         
         <service
             android:name=".FlowEngineService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|dataSync" />
     </application>
 
 </manifest>
