@@ -17,8 +17,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
 /**
- * Advanced Model Manager for Neural Keyboard
- * Supports multiple models, context awareness, and adaptive learning
+ * Advanced Model Manager for Neural Keyboard.
+ *
+ * Quản lý nhiều mô hình (intent/entity/sentiment/context) và cung cấp
+ * API phân tích hợp nhất trên nền coroutine/Flow.
+ *
+ * Ghi chú: Hiện phần thực thi inference được đơn giản hoá (placeholder)
+ * để tập trung vào workflow và hợp đồng API.
  */
 @Singleton
 class AdvancedModelManager @Inject constructor(
@@ -43,9 +48,7 @@ class AdvancedModelManager @Inject constructor(
         private const val SENTIMENT_CLASSES = 3
     }
     
-    /**
-     * Initialize all models
-     */
+    /** Khởi tạo đồng thời tất cả model (intent/entity/sentiment/context). */
     suspend fun initializeModels() {
         coroutineScope {
             val intentJob = async { loadIntentModel() }
@@ -63,9 +66,7 @@ class AdvancedModelManager @Inject constructor(
         }
     }
     
-    /**
-     * Load intent recognition model
-     */
+    /** Tải model nhận diện ý định. */
     private suspend fun loadIntentModel() {
         try {
             val modelBuffer = FileUtil.loadMappedFile(context, INTENT_MODEL_FILE)
@@ -80,9 +81,7 @@ class AdvancedModelManager @Inject constructor(
         }
     }
     
-    /**
-     * Load entity extraction model
-     */
+    /** Tải model trích xuất thực thể. */
     private suspend fun loadEntityModel() {
         try {
             val modelBuffer = FileUtil.loadMappedFile(context, ENTITY_MODEL_FILE)
@@ -97,9 +96,7 @@ class AdvancedModelManager @Inject constructor(
         }
     }
     
-    /**
-     * Load sentiment analysis model
-     */
+    /** Tải model phân tích cảm xúc. */
     private suspend fun loadSentimentModel() {
         try {
             val modelBuffer = FileUtil.loadMappedFile(context, SENTIMENT_MODEL_FILE)
@@ -114,9 +111,7 @@ class AdvancedModelManager @Inject constructor(
         }
     }
     
-    /**
-     * Load context awareness model
-     */
+    /** Tải model phân tích ngữ cảnh. */
     private suspend fun loadContextModel() {
         try {
             val modelBuffer = FileUtil.loadMappedFile(context, CONTEXT_MODEL_FILE)
@@ -131,9 +126,7 @@ class AdvancedModelManager @Inject constructor(
         }
     }
     
-    /**
-     * Analyze text with multiple models
-     */
+    /** Phân tích văn bản với nhiều model và trả về kết quả hợp nhất qua Flow. */
     fun analyzeTextAdvanced(text: String, context: TextContext): Flow<AdvancedAnalysisResult> = flow {
         try {
             val intentResult = analyzeIntent(text)
@@ -156,9 +149,7 @@ class AdvancedModelManager @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
     
-    /**
-     * Analyze intent from text
-     */
+    /** Phân tích ý định từ văn bản. */
     private fun analyzeIntent(text: String): IntentResult {
         // Placeholder implementation
         return IntentResult(
@@ -168,9 +159,7 @@ class AdvancedModelManager @Inject constructor(
         )
     }
     
-    /**
-     * Extract entities from text
-     */
+    /** Trích xuất thực thể từ văn bản. */
     private fun analyzeEntities(text: String): EntityResult {
         // Placeholder implementation
         return EntityResult(
@@ -179,9 +168,7 @@ class AdvancedModelManager @Inject constructor(
         )
     }
     
-    /**
-     * Analyze sentiment
-     */
+    /** Phân tích cảm xúc. */
     private fun analyzeSentiment(text: String): SentimentResult {
         // Placeholder implementation
         return SentimentResult(
@@ -195,9 +182,7 @@ class AdvancedModelManager @Inject constructor(
         )
     }
     
-    /**
-     * Analyze context
-     */
+    /** Phân tích ngữ cảnh. */
     private fun analyzeContext(text: String, context: TextContext): ContextResult {
         // Placeholder implementation
         return ContextResult(
@@ -209,9 +194,7 @@ class AdvancedModelManager @Inject constructor(
         )
     }
     
-    /**
-     * Calculate overall confidence
-     */
+    /** Tính toán confidence tổng hợp. */
     private fun calculateOverallConfidence(
         intent: IntentResult,
         entities: EntityResult,
@@ -220,9 +203,7 @@ class AdvancedModelManager @Inject constructor(
         return (intent.confidence + entities.confidence + sentiment.confidence) / 3f
     }
     
-    /**
-     * Clean up resources
-     */
+    /** Giải phóng tài nguyên model. */
     fun cleanup() {
         intentModel?.close()
         entityModel?.close()

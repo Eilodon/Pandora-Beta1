@@ -139,19 +139,26 @@ class WorkflowEngineTest : TestBase() {
         // Given
         val workflow = createTestWorkflow()
         workflowEngine.registerWorkflow(workflow)
-        // Workflow is already registered
         
-        val triggerEvent = TriggerEvent(
-            id = "trigger1",
-            type = TriggerType.TEXT_PATTERN,
-            triggerId = "trigger1",
-            confidence = 0.8f,
-            data = mapOf("text" to "test pattern"),
-            timestamp = System.currentTimeMillis()
+        val context = mutableMapOf<String, Any>(
+            "text" to "test pattern",
+            "system_context" to TestDataFactory.createComprehensiveContext()
+        )
+        
+        // Mock condition evaluator to return true
+        coEvery { conditionEvaluator.evaluateConditions(any(), any()) } returns true
+        
+        // Mock workflow executor to return success
+        coEvery { workflowExecutor.executeStep(any(), any()) } returns StepExecutionResult(
+            stepId = "step1",
+            isSuccess = true,
+            output = mapOf("result" to "success"),
+            error = null,
+            duration = 100L
         )
         
         // When
-        val result = workflowEngine.executeWorkflow(workflow.id, triggerEvent.data).first()
+        val result = workflowEngine.executeWorkflow(workflow.id, context).first()
         
         // Then
         assertTrue(result.isSuccess)
@@ -162,22 +169,20 @@ class WorkflowEngineTest : TestBase() {
         // Given
         val workflow = createTestWorkflow()
         workflowEngine.registerWorkflow(workflow)
-        // Workflow is already registered
         
-        val triggerEvent = TriggerEvent(
-            id = "trigger1",
-            type = TriggerType.TEXT_PATTERN,
-            triggerId = "trigger1",
-            confidence = 0.8f,
-            data = mapOf("text" to "different pattern"),
-            timestamp = System.currentTimeMillis()
+        val context = mutableMapOf<String, Any>(
+            "text" to "different pattern",
+            "system_context" to TestDataFactory.createComprehensiveContext()
         )
         
+        // Mock condition evaluator to return false
+        coEvery { conditionEvaluator.evaluateConditions(any(), any()) } returns false
+        
         // When
-        val result = workflowEngine.executeWorkflow(workflow.id, triggerEvent.data).first()
+        val result = workflowEngine.executeWorkflow(workflow.id, context).first()
         
         // Then
-        assertTrue(result.isSuccess) // Should succeed but not execute workflow
+        assertFalse(result.isSuccess) // Should fail because conditions not met
     }
     
     @Test
