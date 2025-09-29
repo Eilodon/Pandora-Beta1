@@ -25,6 +25,7 @@ import com.pandora.core.ai.storage.ModelStorageManager
 import com.pandora.core.ai.storage.IModelStorageManager
 import com.pandora.core.ai.hybrid.SimpleHybridModelManager
 import com.pandora.core.ai.hybrid.ProductionHybridModelManager
+import com.pandora.core.ai.hybrid.FullHybridModelManager
 import com.pandora.core.ai.hybrid.HybridModelManagerConfig
 import com.pandora.core.ai.network.NetworkHealthMonitor
 import com.pandora.core.ai.delta.DeltaUpdateManager
@@ -220,17 +221,17 @@ object AIModule {
         return ModelStorageManager(context)
     }
 
-    // @Provides
-    // @Singleton
-    // fun provideNetworkHealthMonitor(@ApplicationContext context: Context): NetworkHealthMonitor {
-    //     return NetworkHealthMonitor(context)
-    // }
+    @Provides
+    @Singleton
+    fun provideNetworkHealthMonitor(@ApplicationContext context: Context): NetworkHealthMonitor {
+        return NetworkHealthMonitor()
+    }
 
-    // @Provides
-    // @Singleton
-    // fun provideDeltaUpdateManager(@ApplicationContext context: Context): DeltaUpdateManager {
-    //     return DeltaUpdateManager(context)
-    // }
+    @Provides
+    @Singleton
+    fun provideDeltaUpdateManager(@ApplicationContext context: Context): DeltaUpdateManager {
+        return DeltaUpdateManager()
+    }
 
     @Provides
     @Singleton
@@ -244,24 +245,27 @@ object AIModule {
         )
     }
 
-    // TODO: Uncomment when HybridModelManagerConfig is compiled
-    // @Provides
-    // @Singleton
-    // fun provideHybridModelManagerConfig(): HybridModelManagerConfig {
-    //     return HybridModelManagerConfig.PRODUCTION
-    // }
+    @Provides
+    @Singleton
+    fun provideHybridModelManagerConfig(): HybridModelManagerConfig {
+        return HybridModelManagerConfig.PRODUCTION
+    }
 
-    // @Provides
-    // @Singleton
-    // fun provideProductionHybridModelManager(
-    //     @ApplicationContext context: Context,
-    //     storageManager: ModelStorageManager,
-    //     config: HybridModelManagerConfig
-    // ): ProductionHybridModelManager {
-    //     return ProductionHybridModelManager(
-    //         context = context,
-    //         storageManager = storageManager,
-    //         config = config
-    //     )
-    // }
+    @Provides
+    @Singleton
+    fun provideFullHybridModelManager(
+        @ApplicationContext context: Context,
+        storageManager: ModelStorageManager,
+        networkMonitor: NetworkHealthMonitor,
+        deltaUpdateManager: DeltaUpdateManager,
+        config: HybridModelManagerConfig
+    ): FullHybridModelManager {
+        return FullHybridModelManager(
+            context = context,
+            storageManager = storageManager,
+            networkMonitor = networkMonitor,
+            deltaUpdateManager = deltaUpdateManager,
+            config = config
+        )
+    }
 }

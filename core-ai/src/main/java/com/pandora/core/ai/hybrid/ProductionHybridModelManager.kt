@@ -26,7 +26,7 @@ class ProductionHybridModelManager @Inject constructor(
     private val storageManager: ModelStorageManager,
     private val config: HybridModelManagerConfig = HybridModelManagerConfig.PRODUCTION
 ) {
-    private val _managerStatus = MutableStateFlow<ManagerStatus>(ManagerStatus())
+    private val _managerStatus = MutableStateFlow<ManagerStatus>(ManagerStatus.IDLE)
     val managerStatus: StateFlow<ManagerStatus> = _managerStatus.asStateFlow()
 
     private val _performanceMetrics = MutableStateFlow<PerformanceMetrics>(PerformanceMetrics())
@@ -44,15 +44,11 @@ class ProductionHybridModelManager @Inject constructor(
     private fun initializeManager() {
         scope.launch {
             try {
-                _managerStatus.value = ManagerStatus(isInitialized = true, isLoading = false, error = null)
+                _managerStatus.value = ManagerStatus.IDLE
                 logMessage("ProductionHybridModelManager initialized with config: ${config.logLevel}")
             } catch (e: Exception) {
                 logError("Failed to initialize manager", e)
-                _managerStatus.value = ManagerStatus(
-                    isInitialized = false,
-                    isLoading = false,
-                    error = e.message
-                )
+                _managerStatus.value = ManagerStatus.ERROR
             }
         }
     }
@@ -91,7 +87,7 @@ class ProductionHybridModelManager @Inject constructor(
 
         val loadJob = scope.async {
             try {
-                _managerStatus.value = _managerStatus.value.copy(isLoading = true, error = null)
+                _managerStatus.value = ManagerStatus.LOADING
                 
                 val result = performModelLoad(
                     modelId = modelId,
@@ -116,7 +112,7 @@ class ProductionHybridModelManager @Inject constructor(
                     loadTime = System.currentTimeMillis() - startTime
                 )
             } finally {
-                _managerStatus.value = _managerStatus.value.copy(isLoading = false)
+                _managerStatus.value = ManagerStatus.IDLE
                 activeLoads.remove(modelId)
                 loadingSemaphore.release()
             }

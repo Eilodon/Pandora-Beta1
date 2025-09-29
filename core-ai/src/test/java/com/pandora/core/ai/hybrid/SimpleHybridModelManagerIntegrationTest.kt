@@ -129,6 +129,7 @@ class SimpleHybridModelManagerIntegrationTest {
 
     @Test
     fun testModelUnload() = runTest(testDispatcher) {
+        @Suppress("UNUSED_VARIABLE")
         val modelId = "testModel"
         mockStorageManager.setDeleteModelResult(true)
         
@@ -147,7 +148,7 @@ class SimpleHybridModelManagerIntegrationTest {
     @Test
     fun testConcurrentModelLoading() = runTest(testDispatcher) {
         // Test concurrent operations without calling loadModel to avoid Log issues
-        val jobs = (1..3).map { i ->
+        val jobs = (1..3).map { _ ->
             async {
                 // Simple test that doesn't call loadModel
                 val status = hybridModelManager.managerStatus.value

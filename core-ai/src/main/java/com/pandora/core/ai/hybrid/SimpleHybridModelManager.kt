@@ -23,14 +23,14 @@ class SimpleHybridModelManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val storageManager: IModelStorageManager
 ) {
-    private val _managerStatus = MutableStateFlow<ManagerStatus>(ManagerStatus())
+    private val _managerStatus = MutableStateFlow<ManagerStatus>(ManagerStatus.IDLE)
     val managerStatus: StateFlow<ManagerStatus> = _managerStatus.asStateFlow()
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     fun initialize() {
         scope.launch {
-            _managerStatus.value = ManagerStatus(isInitialized = true, isLoading = false, error = null)
+            _managerStatus.value = ManagerStatus.IDLE
             Log.d(TAG, "SimpleHybridModelManager initialized.")
         }
     }
@@ -46,7 +46,7 @@ class SimpleHybridModelManager @Inject constructor(
         val sessionId = UUID.randomUUID().toString()
         val startTime = System.currentTimeMillis()
 
-        _managerStatus.value = _managerStatus.value.copy(isLoading = true, error = null)
+        _managerStatus.value = ManagerStatus.LOADING
 
         return try {
             // 1. Try to load from cache first
@@ -56,7 +56,7 @@ class SimpleHybridModelManager @Inject constructor(
                     cachedResult.modelBuffer != null) {
                     Log.d(TAG, "Model $modelId loaded from cache.")
                     val loadTime = System.currentTimeMillis() - startTime
-                    _managerStatus.value = _managerStatus.value.copy(isLoading = false)
+                    _managerStatus.value = ManagerStatus.IDLE
                     return ModelLoadResult(
                         success = true,
                         modelId = modelId,
@@ -102,12 +102,12 @@ class SimpleHybridModelManager @Inject constructor(
             if (!saveSuccess) {
                 val errorMsg = "Failed to save model $modelId after download."
                 Log.e(TAG, errorMsg)
-                _managerStatus.value = _managerStatus.value.copy(isLoading = false, error = errorMsg)
+                _managerStatus.value = ManagerStatus.ERROR
                 return ModelLoadResult(success = false, modelId = modelId, source = null, loadTime = 0L, error = errorMsg)
             }
 
             val loadTime = System.currentTimeMillis() - startTime
-            _managerStatus.value = _managerStatus.value.copy(isLoading = false)
+            _managerStatus.value = ManagerStatus.IDLE
             return ModelLoadResult(
                 success = true,
                 modelId = modelId,
@@ -122,10 +122,7 @@ class SimpleHybridModelManager @Inject constructor(
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error loading model $modelId: ${e.message}", e)
-            _managerStatus.value = _managerStatus.value.copy(
-                isLoading = false,
-                error = e.message
-            )
+            _managerStatus.value = ManagerStatus.ERROR
             return ModelLoadResult(
                 success = false,
                 modelId = modelId,

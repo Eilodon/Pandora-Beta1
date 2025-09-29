@@ -16,5 +16,9 @@ data class ModelSession(
     val accessCount: Int = 0,
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
-    val lastAccessed: Long = System.currentTimeMillis()
+    val lastAccessed: Long = System.currentTimeMillis(),
+    val startTime: Long = System.currentTimeMillis(),
+    val endTime: Long? = null,
+    val priority: ModelPriority = ModelPriority.NORMAL,
+    val status: LoadingStatus = LoadingStatus.COMPLETED
 )

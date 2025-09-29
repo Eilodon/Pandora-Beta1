@@ -261,7 +261,7 @@ class ModelStorageManager @Inject constructor(
         val totalModels = models.size
         val pinnedCount = pinnedModels.size
         
-            return StorageStatistics(
+        return StorageStatistics(
                 totalSize = totalSize,
                 maxSize = maxStorageSize,
                 usagePercentage = (totalSize.toFloat() / maxStorageSize * 100).toLong(),
@@ -375,7 +375,7 @@ class ModelStorageManager @Inject constructor(
     /**
      * Update model index file
      */
-    private fun updateModelIndex(model: CachedModel? = null) {
+    private fun updateModelIndex(@Suppress("UNUSED_PARAMETER") model: CachedModel? = null) {
         try {
             val indexJson = JSONObject()
             val models = _cachedModels.value
@@ -415,7 +415,7 @@ class ModelStorageManager @Inject constructor(
             
             // Remove unpinned models in LRU order
             while (lruQueue.isNotEmpty()) {
-                val modelId = lruQueue.poll()
+                val modelId = lruQueue.poll() ?: break
                 val model = currentModels[modelId]
                 
                 if (model != null && !model.isPinned) {

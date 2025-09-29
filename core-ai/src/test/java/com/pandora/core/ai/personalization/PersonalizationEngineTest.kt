@@ -2,8 +2,8 @@ package com.pandora.core.ai.personalization
 
 import android.content.Context
 import com.pandora.core.ai.TestDataFactory
-import com.pandora.core.ai.TestInfrastructure
 import com.pandora.core.ai.TestUtils
+import com.pandora.core.ai.TestBase
 import com.pandora.core.cac.db.CACDao
 import io.mockk.*
 import kotlinx.coroutines.flow.first
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 /**
  * Unit tests for PersonalizationEngine
  */
-class PersonalizationEngineTest : TestInfrastructure() {
+class PersonalizationEngineTest : TestBase() {
     
     private lateinit var context: Context
     private lateinit var cacDao: CACDao
@@ -267,6 +267,17 @@ class PersonalizationEngineTest : TestInfrastructure() {
             Triple("Action 4", "com.test.app", true),
             Triple("Action 5", "com.test.app", false)
         )
+        
+        // Mock database to return memories
+        val mockMemories = actions.mapIndexed { index, (action, context, success) ->
+            com.pandora.core.cac.db.MemoryEntry(
+                id = index.toString(),
+                content = "Action: $action, Context: $context, Success: $success",
+                source = "personalization",
+                timestamp = System.currentTimeMillis() + index * 1000
+            )
+        }
+        coEvery { cacDao.getMemoriesBySource("keyboard", 100) } returns mockMemories
         
         // When
         actions.forEach { (action, context, success) ->
