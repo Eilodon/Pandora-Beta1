@@ -131,7 +131,6 @@ class PersonalizationEngineTest : TestBase() {
         // Then
         assertTrue(insights.learningProgress >= 0f && insights.learningProgress <= 1f)
         assertTrue(insights.totalActions >= 0)
-        assertTrue(insights.learningProgress >= 0f && insights.learningProgress <= 1f)
     }
     
     @Test
@@ -145,7 +144,6 @@ class PersonalizationEngineTest : TestBase() {
         // Then
         assertEquals(0f, insights.learningProgress)
         assertEquals(0, insights.totalActions)
-        assertEquals(0f, insights.learningProgress)
     }
     
     @Test
@@ -160,7 +158,6 @@ class PersonalizationEngineTest : TestBase() {
         val insights = personalizationEngine.getUserInsights().first()
         assertEquals(0f, insights.learningProgress)
         assertEquals(0, insights.totalActions)
-        assertEquals(0f, insights.learningProgress)
     }
     
     @Test

@@ -7,6 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +56,17 @@ fun PandoraKeyboardView(inputManager: InputManager, viewModel: KeyboardViewModel
 fun SmartContextBar(viewModel: KeyboardViewModel) {
     val inferredAction by viewModel.inferredAction.collectAsState()
     val quickActionSuggestions by viewModel.quickActionSuggestions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+
+    val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
+    LaunchedEffect(snackbarMessage) {
+        if (snackbarMessage != null) {
+            snackbarHostState.showSnackbar(snackbarMessage!!)
+            viewModel.clearSnackbar()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -60,8 +75,24 @@ fun SmartContextBar(viewModel: KeyboardViewModel) {
             .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.CenterStart // Căn sang trái
     ) {
+        // Loading state
+        if (isLoading) {
+            Row(modifier = Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                Text(text = "Đang xử lý...", color = MaterialTheme.colorScheme.onSurface)
+            }
+        }
+        // Error state with retry
+        else if (errorMessage != null) {
+            Row(modifier = Modifier.padding(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = errorMessage ?: "Lỗi", color = MaterialTheme.colorScheme.error)
+                Button(onClick = { viewModel.retryLastAnalysis("") }, colors = ButtonDefaults.buttonColors()) {
+                    Text("Thử lại")
+                }
+            }
+        }
         // Hiển thị Quick Actions suggestions (ưu tiên cao hơn)
-        if (quickActionSuggestions.isNotEmpty()) {
+        else if (quickActionSuggestions.isNotEmpty()) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -87,6 +118,13 @@ fun SmartContextBar(viewModel: KeyboardViewModel) {
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+        }
+
+        // Snackbar host
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(snackbarData = data)
+            }
         }
     }
 }

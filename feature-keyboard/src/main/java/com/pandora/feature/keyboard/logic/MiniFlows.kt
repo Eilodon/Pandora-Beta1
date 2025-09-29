@@ -38,6 +38,7 @@ class MiniFlows @Inject constructor(
             flowScheduler.scheduleMiniFlow(flow)
             emit(true)
         } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Calendar flow error", e)
             emit(false)
         }
     }
@@ -56,6 +57,7 @@ class MiniFlows @Inject constructor(
             flowScheduler.scheduleMiniFlow(flow)
             emit(true)
         } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Spotify flow error", e)
             emit(false)
         }
     }
@@ -74,6 +76,7 @@ class MiniFlows @Inject constructor(
             flowScheduler.scheduleMiniFlow(flow)
             emit(true)
         } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Maps flow error", e)
             emit(false)
         }
     }
@@ -92,6 +95,7 @@ class MiniFlows @Inject constructor(
             flowScheduler.scheduleMiniFlow(flow)
             emit(true)
         } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Camera flow error", e)
             emit(false)
         }
     }
@@ -110,6 +114,7 @@ class MiniFlows @Inject constructor(
             flowScheduler.scheduleMiniFlow(flow)
             emit(true)
         } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Keep flow error", e)
             emit(false)
         }
     }

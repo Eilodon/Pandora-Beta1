@@ -16,7 +16,11 @@ import javax.inject.Singleton
 
 /**
  * A simplified Hybrid Model Manager for initial integration and testing.
- * This version focuses on basic model loading from cache or network.
+ *
+ * Quản lý vòng đời model ở mức cơ bản, ưu tiên lấy từ cache; nếu không có,
+ * giả lập tải mạng (~1s) rồi giải nén và lưu trữ cục bộ.
+ *
+ * Dùng cho benchmark, demo và tích hợp nhanh trước khi dùng bản đầy đủ.
  */
 @Singleton
 class SimpleHybridModelManager @Inject constructor(
@@ -28,6 +32,10 @@ class SimpleHybridModelManager @Inject constructor(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    /**
+     * Khởi tạo manager (non-blocking).
+     * Chuyển trạng thái về [ManagerStatus.IDLE].
+     */
     fun initialize() {
         scope.launch {
             _managerStatus.value = ManagerStatus.IDLE
@@ -35,6 +43,17 @@ class SimpleHybridModelManager @Inject constructor(
         }
     }
 
+    /**
+     * Tải model theo `modelId`.
+     *
+     * @param modelId ID model duy nhất trong cache/storage
+     * @param modelUrl URL nguồn tải model (dùng khi không có cache hoặc `forceDownload=true`)
+     * @param expectedVersion Phiên bản mong đợi, để xác thực cache
+     * @param expectedCompressionType Kiểu nén ("none"/"gzip"/"zstd"/"brotli"), dùng cho giải nén
+     * @param expectedChecksum Checksum xác thực toàn vẹn dữ liệu
+     * @param forceDownload Bỏ qua cache và buộc tải mới
+     * @return [ModelLoadResult] gồm buffer, metadata, thời gian tải, nguồn tải
+     */
     suspend fun loadModel(
         modelId: String,
         modelUrl: String,
@@ -133,6 +152,11 @@ class SimpleHybridModelManager @Inject constructor(
         }
     }
 
+    /**
+     * Gỡ model khỏi storage.
+     * @param modelId ID model cần xoá
+     * @return true nếu xoá thành công
+     */
     suspend fun unloadModel(modelId: String): Boolean {
         return storageManager.deleteModel(modelId)
     }

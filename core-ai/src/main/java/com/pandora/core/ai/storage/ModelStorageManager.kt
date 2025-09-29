@@ -17,9 +17,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Model Storage Manager with LRU Eviction
- * Manages AI model storage with intelligent caching and quota management
- * Features: Pin/Unpin, LRU eviction, JSON indexing, quota management
+ * Model Storage Manager with LRU Eviction.
+ *
+ * Quản lý lưu trữ model AI với: LRU eviction, pin/unpin, chỉ mục JSON,
+ * ngưỡng dọn dẹp và đo thống kê dung lượng.
  */
 @Singleton
 class ModelStorageManager @Inject constructor(
