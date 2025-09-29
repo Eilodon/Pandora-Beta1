@@ -8,6 +8,9 @@ import com.pandora.feature.keyboard.logic.ActionExecutor
 import com.pandora.feature.keyboard.logic.InferenceEngine
 import com.pandora.feature.keyboard.logic.InferredAction
 import com.pandora.feature.keyboard.logic.checkAllMiniFlows
+import com.pandora.feature.keyboard.logic.QuickActionManager
+import com.pandora.feature.keyboard.logic.QuickActionSuggestion
+import com.pandora.feature.keyboard.logic.QuickActionResponse
 import com.pandora.core.ai.EnhancedInferenceEngine
 import com.pandora.core.ai.EnhancedInferenceResult
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,7 +30,8 @@ class KeyboardViewModel @Inject constructor(
     private val memoryDao: MemoryDao,
     private val inferenceEngine: InferenceEngine, // Inject InferenceEngine
     private val enhancedInferenceEngine: EnhancedInferenceEngine, // Inject Enhanced Inference Engine
-    private val actionExecutor: ActionExecutor // Inject ActionExecutor
+    private val actionExecutor: ActionExecutor, // Inject ActionExecutor
+    private val quickActionManager: QuickActionManager // Inject QuickActionManager
 ) : ViewModel() {
 
     val recentMemories: StateFlow<List<MemoryEntryEntity>> =
@@ -44,6 +48,12 @@ class KeyboardViewModel @Inject constructor(
     private val _enhancedInferenceResult = MutableStateFlow<EnhancedInferenceResult?>(null)
     val enhancedInferenceResult: StateFlow<EnhancedInferenceResult?> = _enhancedInferenceResult
 
+    private val _quickActionSuggestions = MutableStateFlow<List<QuickActionSuggestion>>(emptyList())
+    val quickActionSuggestions: StateFlow<List<QuickActionSuggestion>> = _quickActionSuggestions
+
+    private val _quickActionResponse = MutableStateFlow<QuickActionResponse?>(null)
+    val quickActionResponse: StateFlow<QuickActionResponse?> = _quickActionResponse
+
     fun onTextChanged(currentText: String) {
         // Mỗi khi văn bản thay đổi, hãy thử suy luận hành động
         _inferredAction.value = inferenceEngine.inferActionFromText(currentText)
@@ -53,6 +63,14 @@ class KeyboardViewModel @Inject constructor(
             enhancedInferenceEngine.analyzeTextEnhanced(currentText)
                 .collect { result ->
                     _enhancedInferenceResult.value = result
+                }
+        }
+        
+        // Get Quick Action suggestions
+        viewModelScope.launch {
+            quickActionManager.getSuggestions(currentText)
+                .collect { suggestions ->
+                    _quickActionSuggestions.value = suggestions
                 }
         }
         
@@ -101,6 +119,34 @@ class KeyboardViewModel @Inject constructor(
                 android.util.Log.d("KeyboardViewModel", "Enhanced AI initialized successfully")
             } catch (e: Exception) {
                 android.util.Log.e("KeyboardViewModel", "Error initializing Enhanced AI", e)
+            }
+        }
+    }
+
+    /**
+     * Execute Quick Action
+     */
+    fun executeQuickAction(suggestion: QuickActionSuggestion) {
+        viewModelScope.launch {
+            try {
+                quickActionManager.executeAction(suggestion)
+                    .collect { response ->
+                        _quickActionResponse.value = response
+                        
+                        // Clear suggestions after execution
+                        _quickActionSuggestions.value = emptyList()
+                        
+                        // Learn from interaction
+                        quickActionManager.learnFromInteraction(
+                            actionType = suggestion.actionType,
+                            originalText = suggestion.displayText,
+                            success = response.success
+                        )
+                        
+                        android.util.Log.d("KeyboardViewModel", "Quick Action executed: ${suggestion.actionType}")
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("KeyboardViewModel", "Error executing Quick Action", e)
             }
         }
     }

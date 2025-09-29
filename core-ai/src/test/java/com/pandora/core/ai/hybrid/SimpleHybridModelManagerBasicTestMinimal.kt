@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.mockito.Mock
@@ -50,8 +51,7 @@ class SimpleHybridModelManagerBasicTestMinimal {
     @Test
     fun testManagerStatus() = runTest(testDispatcher) {
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized)
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status)
     }
 
     @Test

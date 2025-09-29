@@ -85,15 +85,9 @@ object TestDataFactory {
     }
     
     fun createManagerStatus(
-        isInitialized: Boolean = true,
-        isLoading: Boolean = false,
-        error: String? = null
+        status: ManagerStatus = ManagerStatus.IDLE
     ): ManagerStatus {
-        return ManagerStatus(
-            isInitialized = isInitialized,
-            isLoading = isLoading,
-            error = error
-        )
+        return status
     }
     
     fun createModelSession(

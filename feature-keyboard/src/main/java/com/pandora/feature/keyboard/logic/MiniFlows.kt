@@ -3,6 +3,7 @@ package com.pandora.feature.keyboard.logic
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import androidx.work.WorkInfo
 import com.pandora.core.ai.flows.FlowScheduler
 import com.pandora.core.ai.flows.FlowType
@@ -216,9 +217,109 @@ fun checkAndTriggerNoteFlow(context: Context, text: String) {
     }
 }
 
+/**
+ * Advanced Mini-Flows (3 flows còn thiếu theo blueprint)
+ */
+
+/**
+ * Mute Phone Flow - Calendar trigger
+ */
+fun checkAndTriggerMutePhoneFlow(context: Context, text: String) {
+    if (text.contains("họp", ignoreCase = true) || 
+        text.contains("meeting", ignoreCase = true) ||
+        text.contains("cuộc họp", ignoreCase = true)) {
+        try {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+            audioManager.setRingerMode(android.media.AudioManager.RINGER_MODE_SILENT)
+            android.util.Log.d("MiniFlows", "Phone muted for meeting")
+        } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Error muting phone", e)
+        }
+    }
+}
+
+/**
+ * Auto-reply Zalo Flow - GPS trigger (simulated)
+ */
+fun checkAndTriggerAutoReplyFlow(context: Context, text: String) {
+    if (text.contains("đang lái", ignoreCase = true) || 
+        text.contains("driving", ignoreCase = true) ||
+        text.contains("đang đi đường", ignoreCase = true)) {
+        try {
+            // Simulate auto-reply (in real implementation, would use Zalo API)
+            val intent = Intent(Intent.ACTION_SEND)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_TEXT, "Tôi đang lái xe, sẽ trả lời sau. Cảm ơn!")
+                .setPackage("com.zing.zalo")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                // Fallback to general messaging
+                val fallbackIntent = Intent(Intent.ACTION_SEND)
+                    .setType("text/plain")
+                    .putExtra(Intent.EXTRA_TEXT, "Tôi đang lái xe, sẽ trả lời sau. Cảm ơn!")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(fallbackIntent)
+            }
+            
+            android.util.Log.d("MiniFlows", "Auto-reply sent for driving mode")
+        } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Error sending auto-reply", e)
+        }
+    }
+}
+
+/**
+ * WiFi Toggle Flow - Geofence trigger (simulated)
+ */
+fun checkAndTriggerWiFiToggleFlow(context: Context, text: String) {
+    if (text.contains("rời khỏi nhà", ignoreCase = true) || 
+        text.contains("leaving home", ignoreCase = true) ||
+        text.contains("đi ra ngoài", ignoreCase = true)) {
+        try {
+            val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            android.util.Log.d("MiniFlows", "WiFi settings opened for leaving home")
+        } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Error opening WiFi settings", e)
+        }
+    }
+}
+
+/**
+ * Open Keep Flow - App context trigger
+ */
+fun checkAndTriggerOpenKeepFlow(context: Context, text: String) {
+    if (text.contains("note", ignoreCase = true) || 
+        text.contains("ghi chú", ignoreCase = true) ||
+        text.contains("keep", ignoreCase = true) ||
+        text.contains("memo", ignoreCase = true)) {
+        try {
+            val intent = context.packageManager.getLaunchIntentForPackage("com.google.android.keep")
+            intent?.let {
+                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(it)
+            }
+            android.util.Log.d("MiniFlows", "Keep opened for note taking")
+        } catch (e: Exception) {
+            android.util.Log.e("MiniFlows", "Error opening Keep", e)
+        }
+    }
+}
+
 fun checkAllMiniFlows(context: Context, text: String) {
+    // Original 5 flows
     checkAndTriggerCalendarFlow(context, text)
     checkAndTriggerMapsFlow(context, text)
     checkAndTriggerCameraFlow(context, text)
     checkAndTriggerNoteFlow(context, text)
+    
+    // Advanced 3 flows
+    checkAndTriggerMutePhoneFlow(context, text)
+    checkAndTriggerAutoReplyFlow(context, text)
+    checkAndTriggerWiFiToggleFlow(context, text)
+    checkAndTriggerOpenKeepFlow(context, text)
 }

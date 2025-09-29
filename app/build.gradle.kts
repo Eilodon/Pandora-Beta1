@@ -53,6 +53,9 @@ dependencies {
     implementation(project(":core-ai"))
     implementation(project(":feature-overlay"))
     implementation(project(":feature-keyboard"))
+    implementation(project(":feature-onboarding"))
+    implementation(project(":feature-gamification"))
+    implementation(project(":feature-b2b"))
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")

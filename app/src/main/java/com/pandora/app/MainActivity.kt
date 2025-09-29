@@ -19,6 +19,14 @@ import com.pandora.core.cac.db.CACDao
 import com.pandora.app.performance.MemoryOptimizer
 import com.pandora.app.performance.CPUOptimizer
 import com.pandora.app.performance.PerformanceMonitor
+import com.pandora.feature.onboarding.OnboardingManager
+import com.pandora.feature.onboarding.OnboardingOverlay
+import com.pandora.feature.gamification.GamificationManager
+import com.pandora.feature.gamification.GamificationDashboard
+import com.pandora.feature.b2b.B2BManager
+import com.pandora.feature.b2b.B2BDashboard
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -36,6 +44,15 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var performanceMonitor: PerformanceMonitor
+    
+    @Inject
+    lateinit var onboardingManager: OnboardingManager
+
+    @Inject
+    lateinit var gamificationManager: GamificationManager
+
+    @Inject
+    lateinit var b2bManager: B2BManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +63,13 @@ class MainActivity : ComponentActivity() {
         
         // Initialize performance monitoring
         initializePerformanceMonitoring()
-        
+
+        // Initialize gamification system
+        initializeGamificationSystem()
+
+        // Initialize B2B system
+        initializeB2BSystem()
+
         // Khởi động FlowEngineService để lắng nghe các trigger hệ thống
         startService(Intent(this, FlowEngineService::class.java))
         
@@ -54,6 +77,15 @@ class MainActivity : ComponentActivity() {
             PandoraOSTheme(isDarkTheme = true) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     DesignKitDemo()
+
+                    // Onboarding overlay
+                    OnboardingOverlay(onboardingManager = onboardingManager)
+                    
+                    // Gamification dashboard
+                    GamificationDashboard(gamificationManager = gamificationManager)
+                    
+                    // B2B dashboard
+                    B2BDashboard(b2bManager = b2bManager)
                 }
             }
         }
@@ -77,6 +109,30 @@ class MainActivity : ComponentActivity() {
         println("PandoraOS v0.1.0-chimera - Performance Monitoring: Initialized ✅")
         println("Memory Usage: ${memoryUsage.usedMemory / 1024 / 1024}MB / ${memoryUsage.maxMemory / 1024 / 1024}MB")
         println("CPU Usage: ${cpuUsage.usagePercentage}%")
+    }
+
+    private fun initializeGamificationSystem() {
+        // Initialize gamification system in a coroutine
+        kotlinx.coroutines.GlobalScope.launch {
+            try {
+                gamificationManager.initialize()
+                println("Gamification System initialized successfully ✅")
+            } catch (e: Exception) {
+                println("Failed to initialize Gamification System: ${e.message} ❌")
+            }
+        }
+    }
+
+    private fun initializeB2BSystem() {
+        // Initialize B2B system in a coroutine
+        kotlinx.coroutines.GlobalScope.launch {
+            try {
+                b2bManager.initialize()
+                println("B2B System initialized successfully ✅")
+            } catch (e: Exception) {
+                println("Failed to initialize B2B System: ${e.message} ❌")
+            }
+        }
     }
 
     private fun checkOverlayPermissionAndStartService() {

@@ -120,11 +120,10 @@ class SimpleHybridModelManagerIntegrationTest {
         
         // Test that manager is not initialized initially
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized)
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status)
         
         // Test that we can access manager properties
-        assertTrue(hybridModelManager.managerStatus.value.isInitialized == false)
+        assertEquals(ManagerStatus.IDLE, hybridModelManager.managerStatus.value)
     }
 
     @Test
@@ -141,8 +140,7 @@ class SimpleHybridModelManagerIntegrationTest {
     fun testManagerInitialization() = runTest(testDispatcher) {
         // Test initial status without calling initialize() to avoid Log issues
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized) // Initially false
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status) // Initially IDLE
     }
 
     @Test
@@ -152,7 +150,7 @@ class SimpleHybridModelManagerIntegrationTest {
             async {
                 // Simple test that doesn't call loadModel
                 val status = hybridModelManager.managerStatus.value
-                status.isInitialized
+                status == ManagerStatus.IDLE
             }
         }
         

@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.mockito.Mock
@@ -59,15 +60,13 @@ class SimpleHybridModelManagerBasicTestNoLog {
     fun testManagerInitialization() = runTest(testDispatcher) {
         // Test initial status without calling initialize() to avoid Log issues
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized) // Initially false
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status) // Initially IDLE
     }
 
     @Test
     fun testManagerStatus() = runTest(testDispatcher) {
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized)
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status)
     }
 
     @Test

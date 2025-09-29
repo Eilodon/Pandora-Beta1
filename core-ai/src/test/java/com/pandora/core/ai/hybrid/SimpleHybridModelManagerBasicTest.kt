@@ -71,8 +71,7 @@ class SimpleHybridModelManagerBasicTest {
     fun testLoadModel_forceDownload() = runTest(testDispatcher) {
         // Test basic manager functionality without calling loadModel to avoid Log issues
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized) // Initially false
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status) // Initially IDLE
         
         // Test that manager is properly initialized
         assertNotNull(hybridModelManager)
@@ -110,7 +109,6 @@ class SimpleHybridModelManagerBasicTest {
     fun testManagerInitialization() = runTest(testDispatcher) {
         // Test initial status without calling initialize() to avoid Log issues
         val status = hybridModelManager.managerStatus.value
-        assertFalse(status.isInitialized) // Initially false
-        assertFalse(status.isLoading)
+        assertEquals(ManagerStatus.IDLE, status) // Initially IDLE
     }
 }
