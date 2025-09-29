@@ -72,7 +72,7 @@ class SimpleHybridModelManagerPerformanceTest {
             async {
                 // Simple test that doesn't call loadModel
                 val status = hybridModelManager.managerStatus.value
-                status.isInitialized
+                status == ManagerStatus.IDLE
             }
         }
         
@@ -80,7 +80,7 @@ class SimpleHybridModelManagerPerformanceTest {
         val endTime = System.currentTimeMillis()
         
         // Verify all operations completed
-        assertTrue(results.all { !it }) // All should be false (not initialized)
+        assertTrue(results.all { it }) // All should be true (IDLE status)
         assertTrue(endTime - startTime < 1000) // Should complete within 1 second
     }
 
@@ -124,7 +124,7 @@ class SimpleHybridModelManagerPerformanceTest {
         val endTime = System.currentTimeMillis()
         val loadTime = endTime - startTime
         
-        assertFalse(status.isInitialized) // Should not be initialized initially
+        assertEquals(ManagerStatus.IDLE, status) // Should be IDLE initially
         assertTrue(loadTime < 100) // Should complete within 100ms
     }
 }

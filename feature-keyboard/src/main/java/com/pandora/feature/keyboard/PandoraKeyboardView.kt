@@ -24,6 +24,7 @@ import com.pandora.core.ui.designkit.gestures.KeyboardGestures
 import com.pandora.core.ui.designkit.responsive.ResponsiveTokens
 import com.pandora.feature.keyboard.logic.PandoraAction
 import com.pandora.feature.keyboard.logic.InferredAction
+import com.pandora.feature.keyboard.logic.QuickActionSuggestion
 import com.pandora.core.ai.EnhancedInferenceResult
 
 @Composable
@@ -50,6 +51,7 @@ fun PandoraKeyboardView(inputManager: InputManager, viewModel: KeyboardViewModel
 @Composable
 fun SmartContextBar(viewModel: KeyboardViewModel) {
     val inferredAction by viewModel.inferredAction.collectAsState()
+    val quickActionSuggestions by viewModel.quickActionSuggestions.collectAsState()
 
     Box(
         modifier = Modifier
@@ -58,12 +60,27 @@ fun SmartContextBar(viewModel: KeyboardViewModel) {
             .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.CenterStart // Căn sang trái
     ) {
-        // Chỉ hiển thị khi có hành động được gợi ý
-        inferredAction?.let { action ->
-            SuggestionChip(action = action, onClick = {
-                viewModel.executeAction(action)
+        // Hiển thị Quick Actions suggestions (ưu tiên cao hơn)
+        if (quickActionSuggestions.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            ) {
+                quickActionSuggestions.take(3).forEach { suggestion ->
+                    QuickActionChip(
+                        suggestion = suggestion,
+                        onClick = {
+                            viewModel.executeQuickAction(suggestion)
+                        }
+                    )
+                }
+            }
+        } else if (inferredAction != null) {
+            // Fallback to legacy inferred action
+            SuggestionChip(action = inferredAction!!, onClick = {
+                viewModel.executeAction(inferredAction!!)
             })
-        } ?: run {
+        } else {
             // Hiển thị trạng thái mặc định khi không có gợi ý
             Text(
                 text = "Đang lắng nghe...",
@@ -99,6 +116,26 @@ fun SuggestionChip(action: InferredAction, onClick: () -> Unit) {
             .then(KeyboardGestures.longPressToEdit(Modifier, { onClick() }))
     ) {
         Text(text, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+    }
+}
+
+// Quick Action Chip Component
+@Composable
+fun QuickActionChip(suggestion: QuickActionSuggestion, onClick: () -> Unit) {
+    AnimatedButton(
+        onClick = {
+            onClick()
+        },
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .then(KeyboardGestures.swipeToDelete(Modifier, { onClick() }))
+            .then(KeyboardGestures.longPressToEdit(Modifier, { onClick() }))
+    ) {
+        Text(
+            text = suggestion.displayText,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 12.sp
+        )
     }
 }
 

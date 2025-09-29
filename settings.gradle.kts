@@ -24,6 +24,9 @@ include(
     ":core-cac",
     ":core-ai",
     ":feature-overlay",
-    ":feature-keyboard"
+    ":feature-keyboard",
+    ":feature-onboarding",
+    ":feature-gamification",
+    ":feature-b2b"
     // Các module provider-llm và feature-flow sẽ được thêm sau
 )
